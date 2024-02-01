@@ -155,6 +155,12 @@ async function getAttachments(gmail:gmail_v1.Gmail, account:string, msgId: strin
         const part = parts[i];
         const filename = part.filename
         const attach_id = part.body.attachmentId
+
+		if(!filename || !attach_id) {
+			console.debug(msgId, `Part ${i} has no filename or attachmentId, skipping...`)
+			continue
+		}
+
         const ares = await getAttachment(gmail, account, msgId, attach_id)
         const red = ares.data?.data?.replace(/-/g, '+').replace(/_/g, '/') || ""
         const init_name = filename
@@ -176,7 +182,7 @@ function flatten_parts(dst:any, parts:any){
     }
     else {
         for(let i = 0; i < parts.length;i++){
-            if(parts[i].mimeType=='multipart/related'||parts[i].mimeType=="multipart/alternative")
+            if(parts[i].mimeType=='multipart/related'||parts[i].mimeType=="multipart/alternative" || parts[i].mimeType=="multipart/mixed")
                 flatten_parts(dst, parts[i].parts)
             else
                 dst.assets.push(parts[i])
